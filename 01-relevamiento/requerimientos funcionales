@@ -1,0 +1,5 @@
+## Requerimientos funcionales
+
+1. El sistema debe permitir al paciente registrarse con datos personales.
+2. El paciente podrá solicitar un turno médico eligiendo especialidad y fecha.
+3. El sistema deberá notificar al paciente la confirmación del turno por mail.
