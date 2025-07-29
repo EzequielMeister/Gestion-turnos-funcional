@@ -1,2 +1,34 @@
-## Historias de usuario
+## Historia de usuario: Solicitar turno
+
+Como paciente,  
+quiero poder solicitar un turno médico en línea,  
+para evitar tener que llamar por teléfono.
+
+**Criterios de aceptación:**
+- Debo poder seleccionar especialidad, médico y fecha.
+- Debo recibir confirmación por mail.
+
+---
+
+## Historia de usuario: Ver mis turnos
+
+Como paciente,  
+quiero poder ver todos mis turnos programados,  
+para saber cuándo debo asistir.
+
+**Criterios de aceptación:**
+- Debo ver una lista de turnos futuros y pasados.
+- Puedo cancelar un turno desde ahí si es necesario.
+
+---
+
+## Historia de usuario: Registrar disponibilidad
+
+Como médico,  
+quiero cargar mis días y horarios disponibles,  
+para que los pacientes puedan pedir turnos.
+
+**Criterios de aceptación:**
+- El sistema debe permitir seleccionar fechas y horas disponibles.
+- Solo los turnos dentro de esos horarios pueden ser solicitados.
 
