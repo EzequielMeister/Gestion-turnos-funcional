@@ -1,0 +1,5 @@
+## Requerimientos no funcionales
+
+1. El tiempo de registro de los pacientes deberá ser inferior a 5 minutos para que sea dinamico para los mismos.
+2. La disponibilidad de los turnos debera ser actualizada constantemente.
+3. Las notificaciones via mail deberan llegar con una demora maxima de 3 minutos.
