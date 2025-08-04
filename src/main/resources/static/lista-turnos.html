@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Lista de Turnos</title>
+</head>
+<body>
+<h1>Lista de Turnos Médicos</h1>
+
+<label>Filtrar por Médico:
+    <input type="text" id="filtroMedico" placeholder="Nombre médico" />
+</label>
+<label>Filtrar por Fecha:
+    <input type="date" id="filtroFecha" />
+</label>
+<button id="btnFiltrar">Filtrar</button>
+<button id="btnLimpiar">Limpiar filtros</button>
+
+<ul id="listaTurnos"></ul>
+
+<script>
+    const listaTurnos = document.getElementById('listaTurnos');
+    const filtroMedico = document.getElementById('filtroMedico');
+    const filtroFecha = document.getElementById('filtroFecha');
+    const btnFiltrar = document.getElementById('btnFiltrar');
+    const btnLimpiar = document.getElementById('btnLimpiar');
+
+    async function cargarTurnos(filtros = {}) {
+      try {
+        let url = '/api/turnos';
+        // Si querés hacer filtros por query params, podes adaptarlo en backend
+        // Por ahora cargamos todo y filtramos acá
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Error al obtener turnos');
+
+        const turnos = await res.json();
+
+        // Filtrar localmente
+        const turnosFiltrados = turnos.filter(t => {
+          const matchMedico = filtros.medico ? t.medico.toLowerCase().includes(filtros.medico.toLowerCase()) : true;
+          const matchFecha = filtros.fecha ? t.fecha.startsWith(filtros.fecha) : true;
+          return matchMedico && matchFecha;
+        });
+
+        mostrarTurnos(turnosFiltrados);
+
+      } catch (error) {
+        listaTurnos.innerHTML = '<li>Error: ' + error.message + '</li>';
+      }
+    }
+
+    function mostrarTurnos(turnos) {
+      if (turnos.length === 0) {
+        listaTurnos.innerHTML = '<li>No hay turnos.</li>';
+        return;
+      }
+
+      listaTurnos.innerHTML = '';
+      turnos.forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = `Paciente: ${t.paciente} - Médico: ${t.medico} - Fecha: ${t.fecha}`;
+        listaTurnos.appendChild(li);
+      });
+    }
+
+    btnFiltrar.addEventListener('click', () => {
+      cargarTurnos({
+        medico: filtroMedico.value,
+        fecha: filtroFecha.value
+      });
+    });
+
+    btnLimpiar.addEventListener('click', () => {
+      filtroMedico.value = '';
+      filtroFecha.value = '';
+      cargarTurnos();
+    });
+
+    // Carga inicial sin filtros
+    cargarTurnos();
+</script>
+</body>
+</html>
