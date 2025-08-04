@@ -8,11 +8,12 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 
 
-@Entity
+// Clase entidad de turnos
+@Entity // --> le dice a Spring que esta clase es una tabla en la base de datos
 public class Turno {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // el ID se autogenera al guardar el turno.
     private Long id;
 
     private String paciente;

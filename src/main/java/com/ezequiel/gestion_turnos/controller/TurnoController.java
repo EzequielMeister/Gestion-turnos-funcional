@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+// Es la clase que expone los endpoints.
+
 @RestController
 @RequestMapping("/api/turnos") // <-- Define la ruta base
 public class TurnoController {
