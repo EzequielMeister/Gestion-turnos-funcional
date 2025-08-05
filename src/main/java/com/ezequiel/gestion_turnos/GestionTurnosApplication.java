@@ -11,3 +11,5 @@ public class GestionTurnosApplication {
 	}
 
 }
+
+// login sql para la bd: gestion_turnos -> user: eze pass: passpass
