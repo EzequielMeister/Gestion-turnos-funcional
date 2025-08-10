@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 
@@ -16,13 +17,18 @@ public class Turno {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // el ID se autogenera al guardar el turno.
     private Long id;
 
+    @NotBlank(message = "El paciente es obligatorio")
     private String paciente;
 
+    @NotBlank(message = "El medico es obligatorio")
     private String medico;
 
+    @NotBlank(message = "La especialidad es obligatoria")
     private String especialidad;
 
+    @NotBlank(message = "La fecha es obligatoria")
     private LocalDateTime fechaHora;
+
 
     private boolean confirmado;
 
