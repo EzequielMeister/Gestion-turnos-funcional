@@ -5,11 +5,15 @@ import com.ezequiel.gestion_turnos.repository.TurnoRepository;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/turnos")
@@ -24,10 +28,17 @@ public class TurnoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crearTurno(@Valid @RequestBody Turno turno) {
+    public ResponseEntity<?> crearTurno(@Valid @RequestBody Turno turno, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            // Para enviar un mensaje con todos los errores de la solicitud de crear el turno.
+            String errores = bindingResult.getAllErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(", "));
+            return ResponseEntity.badRequest().body(errores);
+        }
         Turno nuevoTurno = turnoRepository.save(turno);
-        URI location = URI.create(String.format("/api/turnos/%s", nuevoTurno.getId()));
-        return ResponseEntity.created(location).body(nuevoTurno);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTurno);
     }
 
     @GetMapping("/{id}")
@@ -47,17 +58,26 @@ public class TurnoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizarTurno(@PathVariable Long id, @Valid @RequestBody Turno turnoDetalles) {
-        return turnoRepository.findById(id)
-                .map(turno -> {
-                    turno.setPaciente(turnoDetalles.getPaciente());
-                    turno.setMedico(turnoDetalles.getMedico());
-                    turno.setEspecialidad(turnoDetalles.getEspecialidad());
-                    turno.setFechaHora(turnoDetalles.getFechaHora());
-                    turno.setConfirmado(turnoDetalles.isConfirmado());
-                    Turno actualizado = turnoRepository.save(turno);
-                    return ResponseEntity.ok(actualizado);
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> actualizarTurno(@PathVariable Long id, @Valid @RequestBody Turno turno, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String errores = bindingResult.getAllErrors()
+                    .stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            return ResponseEntity.badRequest().body(errores);
+        }
+
+        return turnoRepository.findById(id).map(turnoExistente -> {
+            turnoExistente.setPaciente(turno.getPaciente());
+            turnoExistente.setMedico(turno.getMedico());
+            turnoExistente.setEspecialidad(turno.getEspecialidad());
+            turnoExistente.setFechaHora(turno.getFechaHora());
+            turnoExistente.setConfirmado(turno.isConfirmado());
+
+            turnoRepository.save(turnoExistente);
+            return ResponseEntity.ok(turnoExistente);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+
 }
