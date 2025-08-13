@@ -15,10 +15,6 @@
         <div class="card-body">
             <form id="turnoForm">
                 <div class="mb-3">
-                    <label for="paciente" class="form-label">Paciente</label>
-                    <input type="text" class="form-control" id="paciente" required/>
-                </div>
-                <div class="mb-3">
                     <label for="medico" class="form-label">Médico</label>
                     <input type="text" class="form-control" id="medico" required/>
                 </div>
@@ -48,39 +44,70 @@
     const form = document.getElementById('turnoForm');
     const mensaje = document.getElementById('mensaje');
 
+    let usuarioLogueado = '';
+
+    // Obtenemos el username del usuario autenticado
+    async function obtenerUsuario() {
+        try {
+            const res = await fetch('/api/me');
+            if (res.ok) {
+                usuarioLogueado = await res.text();
+            } else {
+                usuarioLogueado = '';
+            }
+        } catch (error) {
+            usuarioLogueado = '';
+        }
+    }
+
+    // Llamamos al cargar la página
+    obtenerUsuario();
+
     form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const data = {
-        paciente: document.getElementById('paciente').value,
-        medico: document.getElementById('medico').value,
-        especialidad: document.getElementById('especialidad').value,
-        fechaHora: document.getElementById('fechaHora').value,
-        confirmado: document.getElementById('confirmado').checked
-    };
+        if (!usuarioLogueado) {
+            mensaje.textContent = '❌ No se pudo obtener usuario logueado.';
+            mensaje.className = 'text-danger fw-bold';
+            return;
+        }
 
-    try {
-        const res = await fetch('/api/turnos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
+        const data = {
+            pacienteUsername: usuarioLogueado,
+            medico: document.getElementById('medico').value,
+            especialidad: document.getElementById('especialidad').value,
+            fechaHora: document.getElementById('fechaHora').value,
+            confirmado: document.getElementById('confirmado').checked
+        };
 
-        if (res.ok) {
-            mensaje.textContent = '✅ Turno agendado con éxito';
-            mensaje.className = 'text-success fw-bold';
-            form.reset();
-        } else {
-            const errorData = await res.json();
-            mensaje.textContent = '❌ Error: ' + (errorData.message || 'No se pudo agendar');
+        try {
+            const res = await fetch('/api/turnos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                mensaje.textContent = '✅ Turno agendado con éxito';
+                mensaje.className = 'text-success fw-bold';
+                form.reset();
+            } else {
+                // Intentamos leer JSON, si no, mostramos el texto
+                let errorMsg;
+                try {
+                    const errorData = await res.json();
+                    errorMsg = errorData.errores || JSON.stringify(errorData);
+                } catch {
+                    errorMsg = await res.text();
+                }
+                mensaje.textContent = '❌ Error: ' + errorMsg;
+                mensaje.className = 'text-danger fw-bold';
+            }
+        } catch (error) {
+            mensaje.textContent = '❌ Error de red: ' + error.message;
             mensaje.className = 'text-danger fw-bold';
         }
-    } catch (error) {
-        mensaje.textContent = '❌ Error de red: ' + error.message;
-        mensaje.className = 'text-danger fw-bold';
-    }
-});
-
+    });
 </script>
 
 </body>

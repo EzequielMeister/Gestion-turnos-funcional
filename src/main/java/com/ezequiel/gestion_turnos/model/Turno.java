@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -23,14 +24,20 @@ public class Turno {
     @NotBlank(message = "El medico es obligatorio")
     private String medico;
 
+    @NotBlank(message = "El username del paciente es obligatorio")
+    private String pacienteUsername;
+
+    @NotBlank(message = "El username del médico es obligatorio")
+    private String medicoUsername;
+
     @NotBlank(message = "La especialidad es obligatoria")
     private String especialidad;
 
-    @NotBlank(message = "La fecha es obligatoria")
+    @NotNull(message = "La fecha del turno es obligatoria!")
     private LocalDateTime fechaHora;
 
-
     private boolean confirmado;
+
 
     // Getters y Setters
     public Long getId() {
@@ -47,6 +54,22 @@ public class Turno {
 
     public String getMedico() {
         return medico;
+    }
+
+    public String getPacienteUsername(){
+        return pacienteUsername;
+    }
+
+    public void setPacienteUsername(String username){
+        this.pacienteUsername = pacienteUsername;
+    }
+
+    public String getMedicoUsername(){
+        return medicoUsername;
+    }
+
+    public void setMedicoUsername(String medicoUsername){
+        this.medicoUsername = this.medicoUsername;
     }
 
     public void setMedico(String medico) {
