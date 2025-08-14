@@ -9,18 +9,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class SecurityConfig {
 
+    // Encoder de contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Usuarios en memoria
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
-
         PasswordEncoder encoder = passwordEncoder();
 
         UserDetails paciente = User.builder()
@@ -44,26 +47,23 @@ public class SecurityConfig {
         return new InMemoryUserDetailsManager(paciente, medico, admin);
     }
 
+    // Configuración de seguridad
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
+                .cors().and()                // Permite CORS
+                .csrf().disable()            // Desactiva CSRF para fetch
                 .authorizeHttpRequests(auth -> auth
-                        // Solo usuarios autenticados pueden acceder a sacar-turnos.html
-                        .requestMatchers("/sacar-turnos.html").authenticated()
-
-                        // Rutas de la API que pueden ser públicas
-                        .requestMatchers("/api/turnos/**").permitAll()
-
-                        // Recursos estáticos
+                        .requestMatchers("/sacar-turnos.html", "/lista-turnos.html")
+                        .authenticated()   // Solo usuarios logueados pueden acceder a estas páginas
+                        .requestMatchers("/api/turnos/**", "/api/me").authenticated() // fetch requiere sesión
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login.html")          // Página de login personalizada
-                        .loginProcessingUrl("/login")      // URL a la que envía el formulario POST
-                        .defaultSuccessUrl("/sacar-turnos.html", true) // Redirección al login exitoso
+                        .loginProcessingUrl("/login")      // URL de procesamiento del login
+                        .defaultSuccessUrl("/sacar-turnos.html", true) // Redirección post-login
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -73,5 +73,19 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    // Configuración de CORS (para fetch desde el mismo origen o distinto)
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowCredentials(true) // Permite enviar cookies
+                        .allowedOrigins("http://localhost:8080") // tu front si es otro puerto
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+            }
+        };
     }
 }

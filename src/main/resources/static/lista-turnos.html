@@ -7,95 +7,89 @@
 </head>
 <body class="bg-light">
 
-<div class="container mt-5">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="agendar-turno.html">📅 Gestión de Turnos</a>
+        <div class="d-flex align-items-center text-white">
+            <span id="usuarioLogueado" class="me-3">Cargando...</span>
+            <button class="btn btn-light btn-sm" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Lista de Turnos Médicos</h2>
+            <h2 class="mb-0">Lista de Turnos</h2>
         </div>
         <div class="card-body">
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <input type="text" id="filtroMedico" class="form-control" placeholder="Filtrar por médico"/>
-                </div>
-                <div class="col-md-4">
-                    <input type="date" id="filtroFecha" class="form-control"/>
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <button id="btnFiltrar" class="btn btn-primary">Filtrar</button>
-                    <button id="btnLimpiar" class="btn btn-secondary">Limpiar</button>
-                </div>
-            </div>
-
             <ul id="listaTurnos" class="list-group"></ul>
         </div>
     </div>
 </div>
 
 <script>
-    const listaTurnos = document.getElementById('listaTurnos');
-    const filtroMedico = document.getElementById('filtroMedico');
-    const filtroFecha = document.getElementById('filtroFecha');
-    const btnFiltrar = document.getElementById('btnFiltrar');
-    const btnLimpiar = document.getElementById('btnLimpiar');
+    let usuarioLogueado = '';
+    let esAdmin = false;
 
-    async function cargarTurnos(filtros = {}) {
+    // 🔹 Cambiado fetch con credentials: 'include'
+    async function obtenerUsuario() {
         try {
-            let url = '/api/turnos';
-            const res = await fetch(url);
+            const res = await fetch('/api/me', { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                usuarioLogueado = data.username;
+                esAdmin = data.rol === "admin";
+                document.getElementById("usuarioLogueado").textContent = usuarioLogueado;
+                cargarTurnos();
+            } else {
+                window.location.href = 'login.html';
+            }
+        } catch {
+            window.location.href = 'login.html';
+        }
+    }
+
+    async function cargarTurnos() {
+        try {
+            const res = await fetch('/api/turnos', { credentials: 'include' });
             if (!res.ok) throw new Error('Error al obtener turnos');
 
             const turnos = await res.json();
-
-           const turnosFiltrados = turnos.filter(t => {
-            const matchMedico = filtros.medico ? t.medico.toLowerCase().includes(filtros.medico.toLowerCase()) : true;
-            const matchFecha = filtros.fecha ? t.fechaHora.startsWith(filtros.fecha) : true;  // antes: t.fecha.startsWith(filtros.fecha)
-            return matchMedico && matchFecha;
-});
-
-            mostrarTurnos(turnosFiltrados);
-
+            const filtrados = esAdmin ? turnos : turnos.filter(t => t.paciente === usuarioLogueado);
+            mostrarTurnos(filtrados);
         } catch (error) {
-            listaTurnos.innerHTML = `<li class="list-group-item text-danger">Error: ${error.message}</li>`;
+            document.getElementById('listaTurnos').innerHTML =
+                `<li class="list-group-item text-danger">Error: ${error.message}</li>`;
         }
     }
 
     function mostrarTurnos(turnos) {
-    listaTurnos.innerHTML = '';
-    if (turnos.length === 0) {
-        listaTurnos.innerHTML = '<li class="list-group-item">No hay turnos.</li>';
-        return;
-    }
-
-    turnos.forEach(t => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.innerHTML = `
-            <strong>Paciente:</strong> ${t.paciente} |
-            <strong>Médico:</strong> ${t.medico} |
-            <strong>Especialidad:</strong> ${t.especialidad} |
-            <strong>Fecha y hora:</strong> ${t.fechaHora} |
-            <strong>Confirmado:</strong> ${t.confirmado ? 'Sí' : 'No'}
-        `;
-        listaTurnos.appendChild(li);
+        const lista = document.getElementById('listaTurnos');
+        lista.innerHTML = '';
+        if (turnos.length === 0) {
+            lista.innerHTML = '<li class="list-group-item">No hay turnos.</li>';
+            return;
+        }
+        turnos.forEach(t => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerHTML = `
+                <strong>Paciente:</strong> ${t.paciente} |
+                <strong>Médico:</strong> ${t.medico} |
+                <strong>Especialidad:</strong> ${t.especialidad} |
+                <strong>Fecha y hora:</strong> ${t.fechaHora} |
+                <strong>Confirmado:</strong> ${t.confirmado ? 'Sí' : 'No'}
+            `;
+            lista.appendChild(li);
         });
     }
 
+    function logout() {
+        window.location.href = "/logout";
+    }
 
-    btnFiltrar.addEventListener('click', () => {
-        cargarTurnos({
-            medico: filtroMedico.value,
-            fecha: filtroFecha.value
-        });
-    });
-
-    btnLimpiar.addEventListener('click', () => {
-        filtroMedico.value = '';
-        filtroFecha.value = '';
-        cargarTurnos();
-    });
-
-    cargarTurnos();
+    obtenerUsuario();
 </script>
 
 </body>

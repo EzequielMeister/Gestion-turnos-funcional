@@ -7,13 +7,24 @@
 </head>
 <body class="bg-light">
 
-<div class="container mt-5">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Agendar Turno Médico</h2>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="agendar-turno.html">📅 Gestión de Turnos</a>
+        <div class="d-flex align-items-center text-white">
+            <span id="usuarioLogueado" class="me-3">Cargando...</span>
+            <button class="btn btn-light btn-sm" onclick="logout()">Cerrar sesión</button>
         </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="card shadow">
         <div class="card-body">
             <form id="turnoForm">
+                <div class="mb-3">
+                    <label for="paciente" class="form-label">Paciente</label>
+                    <input type="text" class="form-control" id="paciente" readonly/>
+                </div>
                 <div class="mb-3">
                     <label for="medico" class="form-label">Médico</label>
                     <input type="text" class="form-control" id="medico" required/>
@@ -31,8 +42,8 @@
                     <label class="form-check-label" for="confirmado">Confirmado</label>
                 </div>
                 <button type="submit" class="btn btn-success">Agendar</button>
+                <a href="lista-turnos.html" class="btn btn-secondary">📋 Ver Lista de Turnos</a>
             </form>
-
             <div class="mt-3">
                 <p id="mensaje" class="fw-bold"></p>
             </div>
@@ -41,66 +52,57 @@
 </div>
 
 <script>
-    const form = document.getElementById('turnoForm');
-    const mensaje = document.getElementById('mensaje');
-
     let usuarioLogueado = '';
+    let esAdmin = false;
 
-    // Obtenemos el username del usuario autenticado
+    // 🔹 Cambiado fetch con credentials: 'include'
     async function obtenerUsuario() {
         try {
-            const res = await fetch('/api/me');
+            const res = await fetch('/api/me', { credentials: 'include' });
             if (res.ok) {
-                usuarioLogueado = await res.text();
+                const data = await res.json();
+                usuarioLogueado = data.username;
+                esAdmin = data.rol === "admin";
+                document.getElementById("usuarioLogueado").textContent = usuarioLogueado;
+                document.getElementById("paciente").value = usuarioLogueado;
             } else {
-                usuarioLogueado = '';
+                window.location.href = 'login.html';
             }
-        } catch (error) {
-            usuarioLogueado = '';
+        } catch {
+            window.location.href = 'login.html';
         }
     }
-
-    // Llamamos al cargar la página
     obtenerUsuario();
 
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('turnoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const mensaje = document.getElementById('mensaje');
 
-        if (!usuarioLogueado) {
-            mensaje.textContent = '❌ No se pudo obtener usuario logueado.';
-            mensaje.className = 'text-danger fw-bold';
-            return;
-        }
-
-        const data = {
+       const data = {
+            paciente: document.getElementById('paciente').value,
             pacienteUsername: usuarioLogueado,
             medico: document.getElementById('medico').value,
+            medicoUsername: document.getElementById('medico').value,
             especialidad: document.getElementById('especialidad').value,
             fechaHora: document.getElementById('fechaHora').value,
             confirmado: document.getElementById('confirmado').checked
-        };
+    };
 
         try {
             const res = await fetch('/api/turnos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                credentials: 'include' // 🔹 enviamos cookies también aquí
             });
 
             if (res.ok) {
                 mensaje.textContent = '✅ Turno agendado con éxito';
                 mensaje.className = 'text-success fw-bold';
-                form.reset();
+                e.target.reset();
+                document.getElementById('paciente').value = usuarioLogueado;
             } else {
-                // Intentamos leer JSON, si no, mostramos el texto
-                let errorMsg;
-                try {
-                    const errorData = await res.json();
-                    errorMsg = errorData.errores || JSON.stringify(errorData);
-                } catch {
-                    errorMsg = await res.text();
-                }
-                mensaje.textContent = '❌ Error: ' + errorMsg;
+                mensaje.textContent = '❌ Error al agendar turno';
                 mensaje.className = 'text-danger fw-bold';
             }
         } catch (error) {
@@ -108,6 +110,10 @@
             mensaje.className = 'text-danger fw-bold';
         }
     });
+
+    function logout() {
+        window.location.href = "/logout";
+    }
 </script>
 
 </body>

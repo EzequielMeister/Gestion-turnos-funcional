@@ -61,7 +61,7 @@ public class Turno {
     }
 
     public void setPacienteUsername(String username){
-        this.pacienteUsername = pacienteUsername;
+        this.pacienteUsername = username;
     }
 
     public String getMedicoUsername(){
@@ -69,7 +69,7 @@ public class Turno {
     }
 
     public void setMedicoUsername(String medicoUsername){
-        this.medicoUsername = this.medicoUsername;
+        this.medicoUsername = medicoUsername;
     }
 
     public void setMedico(String medico) {
