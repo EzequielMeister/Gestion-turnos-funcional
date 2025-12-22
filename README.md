@@ -1,29 +1,30 @@
-# Sistema de Gestión de Turnos Médicos
+# Medical Appointment Management System
 
-## Objetivo del proyecto
+## Functional Analysis Project
 
-Documentar un sistema de turnos médicos desde el enfoque funcional, con historias de usuario, diagramas, pruebas y diseño conceptual.  
-Pensado para ser la base de un desarrollo real o una propuesta funcional bien estructurada.
+## Project Objective
+To document a medical appointment management system from a functional analysis perspective,
+including user stories, diagrams, functional testing, and conceptual system design.
 
-## Enfoque
+This project is intended to serve as a foundation for a real system development or
+as a well-structured functional proposal.
 
-- Relevamiento de requerimientos
-- Historias de usuario
-- Diagramas de casos de uso
-- Mockups de pantallas
-- Pruebas funcionales
-- Diseño conceptual del sistema
+## Functional Approach
+- Requirements elicitation and analysis
+- User stories and acceptance criteria
+- Use case and process diagrams
+- Screen mockups and functional design
+- Functional test cases
+- Conceptual system design
 
-## Estructura del repositorio
+## Repository Structure
+- `02-modeling/`: UML diagrams (use cases, actors)
+- `03-user-stories/`: User stories and acceptance criteria
+- `04-functional-design/`: Mockups, architecture, planned screens
+- `05-testing/`: Functional test cases
 
-- `02-modelado/`: Diagramas UML (casos de uso, actores)
-- `03-historias-usuario/`: Historias de usuario y criterios de aceptación
-- `04-diseno-funcional/`: Mockups, arquitectura, pantallas previstas
-- `05-pruebas/`: Casos de prueba funcional
-
-## Autor
-
-Ezequiel Meister  
-📧 [Tu mail si querés]  
+## Author
+**Ezequiel Meister**  
+📧 [Mail](ezee7771@gmail.com)
 🔗 [LinkedIn](https://www.linkedin.com/in/ezequiel-meister-a75115242)  
 💻 [GitHub](https://github.com/EzequielMeister)
