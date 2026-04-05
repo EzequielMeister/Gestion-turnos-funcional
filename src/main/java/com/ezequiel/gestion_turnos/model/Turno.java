@@ -1,86 +1,100 @@
 package com.ezequiel.gestion_turnos.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
+import com.ezequiel.gestion_turnos.model.enums.EstadoTurno;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-
-// Clase entidad de turnos
-@Entity // --> le dice a Spring que esta clase es una tabla en la base de datos
+@Entity
+@Table(name = "turnos", indexes = {
+    @Index(name = "idx_turno_fecha", columnList = "fechaHora"),
+    @Index(name = "idx_turno_medico_fecha", columnList = "medicoUsername, fechaHora"),
+    @Index(name = "idx_turno_paciente", columnList = "pacienteUsername")
+})
 public class Turno {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // el ID se autogenera al guardar el turno.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El paciente es obligatorio")
-    private String paciente;
+    @NotNull(message = "El paciente es obligatorio")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", nullable = false)
+    private User paciente;
 
-    @NotBlank(message = "El medico es obligatorio")
-    private String medico;
+    @NotNull(message = "El médico es obligatorio")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "medico_id", nullable = false)
+    private User medico;
 
-    @NotBlank(message = "El username del paciente es obligatorio")
-    private String pacienteUsername;
+    @NotNull(message = "La especialidad es obligatoria")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "especialidad_id", nullable = false)
+    private Especialidad especialidad;
 
-    @NotBlank(message = "El username del médico es obligatorio")
-    private String medicoUsername;
-
-    @NotBlank(message = "La especialidad es obligatoria")
-    private String especialidad;
-
-    @NotNull(message = "La fecha del turno es obligatoria!")
+    @NotNull(message = "La fecha y hora del turno es obligatoria")
+    @Future(message = "La fecha del turno debe ser futura")
+    @Column(nullable = false)
     private LocalDateTime fechaHora;
 
-    private boolean confirmado;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoTurno estado = EstadoTurno.PENDIENTE;
 
+    @Column(name = "notas_paciente", length = 500)
+    private String notasPaciente;
 
-    // Getters y Setters
+    @Column(name = "notas_medico", length = 500)
+    private String notasMedico;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
+    @PrePersist
+    protected void onCreate() {
+        fechaCreacion = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }
 
-    public String getPaciente() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getPaciente() {
         return paciente;
     }
 
-    public void setPaciente(String paciente) {
+    public void setPaciente(User paciente) {
         this.paciente = paciente;
     }
 
-    public String getMedico() {
+    public User getMedico() {
         return medico;
     }
 
-    public String getPacienteUsername(){
-        return pacienteUsername;
-    }
-
-    public void setPacienteUsername(String username){
-        this.pacienteUsername = username;
-    }
-
-    public String getMedicoUsername(){
-        return medicoUsername;
-    }
-
-    public void setMedicoUsername(String medicoUsername){
-        this.medicoUsername = medicoUsername;
-    }
-
-    public void setMedico(String medico) {
+    public void setMedico(User medico) {
         this.medico = medico;
     }
 
-    public String getEspecialidad() {
+    public Especialidad getEspecialidad() {
         return especialidad;
     }
 
-    public void setEspecialidad(String especialidad) {
+    public void setEspecialidad(Especialidad especialidad) {
         this.especialidad = especialidad;
     }
 
@@ -92,12 +106,60 @@ public class Turno {
         this.fechaHora = fechaHora;
     }
 
-    public boolean isConfirmado() {
-        return confirmado;
+    public EstadoTurno getEstado() {
+        return estado;
     }
 
-    public void setConfirmado(boolean confirmado) {
-        this.confirmado = confirmado;
+    public void setEstado(EstadoTurno estado) {
+        this.estado = estado;
+    }
+
+    public String getNotasPaciente() {
+        return notasPaciente;
+    }
+
+    public void setNotasPaciente(String notasPaciente) {
+        this.notasPaciente = notasPaciente;
+    }
+
+    public String getNotasMedico() {
+        return notasMedico;
+    }
+
+    public void setNotasMedico(String notasMedico) {
+        this.notasMedico = notasMedico;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public LocalDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
+
+    public boolean isConfirmado() {
+        return estado == EstadoTurno.CONFIRMADO;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Turno turno = (Turno) o;
+        return Objects.equals(id, turno.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Turno{id=%d, estado=%s, fecha=%s, paciente=%s, medico=%s}",
+                id, estado, fechaHora, 
+                paciente != null ? paciente.getUsername() : null,
+                medico != null ? medico.getUsername() : null);
     }
 }
-
